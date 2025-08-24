@@ -22,6 +22,9 @@ public class TCPShield implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Initializing TCPShield mod...");
         
+        // Add Tailscale IP ranges (private networks)
+        addTailscaleRanges();
+        
         List<String> ipRanges = fetchIpRanges("https://tcpshield.com/v4/");
         ipRanges.addAll(fetchIpRanges("https://tcpshield.com/v4-cf/"));
 
@@ -84,6 +87,24 @@ public class TCPShield implements ModInitializer {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+    
+    /**
+     * Add Tailscale IP ranges to the allowed list.
+     * Tailscale uses specific private IP ranges for their networks.
+     */
+    private void addTailscaleRanges() {
+        List<String> tailscaleRanges = List.of(
+            "100.64.0.0/10",      // Tailscale's main private network range
+            "fd7a:115c:a1e0::/48" // Tailscale's IPv6 range
+        );
+        
+        ALLOWED_IP_RANGES.addAll(tailscaleRanges);
+        LOGGER.info("Added {} Tailscale IP ranges for private network access", tailscaleRanges.size());
+        
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Tailscale ranges: {}", String.join(", ", tailscaleRanges));
         }
     }
     
